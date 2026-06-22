@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessible Card</title>
+  <style>
+    body{font:16px sans-serif;display:grid;place-items:center;height:100vh;margin:0;background:#f8fafc}
+    .card{background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 4px 6px -1px #0002;max-width:300px;position:relative;transition:.2s}
+    .card:hover{transform:translateY(-4px);box-shadow:0 10px 15px -3px #0002}
+    .btn{position:absolute;top:1rem;right:1rem;border:none;background:0;cursor:pointer;padding:8px;border-radius:6px;transition:.2s}
+    .btn:hover{background:#fee2e2;color:#dc2626}
+    .btn:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3>Feature Card</h3>
+    <p>An accessible card demo.</p>
+    <button class="btn" aria-label="Delete" title="Delete" onclick="confirm('Delete?')&&this.closest('.card').remove()">
+      <span aria-hidden="true">🗑️</span>
+    </button>
+  </div>
+</body>
+</html>
