@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessible Card - Palette</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --success: #059669;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      max-width: 320px;
+      width: 100%;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    .card h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .card p {
+      margin: 0 0 1.25rem 0;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1rem;
+    }
+
+    .id-tag {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      background: #f1f5f9;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid #e2e8f0;
+      color: var(--text-muted);
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .copy-btn:hover {
+      background: #f1f5f9;
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .copy-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .copy-btn:active {
+      transform: scale(0.95);
+    }
+
+    .copy-btn.success {
+      color: var(--success);
+      border-color: var(--success);
+      background: #ecfdf5;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #1e293b;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -4px;
+      border-width: 4px;
+      border-style: solid;
+      border-color: #1e293b transparent transparent transparent;
+    }
+
+    .copy-btn.success .tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <article class="card">
+    <h2>Feature Card</h2>
+    <p>This card demonstrates a delightful "Copy to Clipboard" micro-interaction with accessibility in mind.</p>
+
+    <div class="card-footer">
+      <span class="id-tag" id="cardId">CARD-12345</span>
+
+      <button
+        id="copyBtn"
+        class="copy-btn"
+        aria-label="Copy Card ID"
+        title="Copy Card ID"
+      >
+        <svg id="copyIcon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <svg id="checkIcon" class="hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span class="tooltip" id="copyStatus">Copied!</span>
+      </button>
+    </div>
+  </article>
+
+  <!-- Live region for screen readers -->
+  <div class="sr-only" aria-live="polite" id="liveRegion"></div>
+
+  <script>
+    const copyBtn = document.getElementById('copyBtn');
+    const copyIcon = document.getElementById('copyIcon');
+    const checkIcon = document.getElementById('checkIcon');
+    const cardId = document.getElementById('cardId').textContent;
+    const liveRegion = document.getElementById('liveRegion');
+    let timeout;
+
+    copyBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(cardId);
+
+        // Visual Success State
+        copyBtn.classList.add('success');
+        copyIcon.classList.add('hidden');
+        checkIcon.classList.remove('hidden');
+
+        // A11y Announcement
+        liveRegion.textContent = 'Card ID copied to clipboard';
+
+        // Reset after 2 seconds
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          copyBtn.classList.remove('success');
+          copyIcon.classList.remove('hidden');
+          checkIcon.classList.add('hidden');
+          liveRegion.textContent = '';
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+        liveRegion.textContent = 'Failed to copy Card ID';
+      }
+    };
+  </script>
+</body>
+</html>
