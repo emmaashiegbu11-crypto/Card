@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Card</title>
+<style>
+  body { font: 16px sans-serif; display: grid; place-items: center; height: 100vh; margin: 0; background: #f8fafc; }
+  .card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px #0002; max-width: 300px; position: relative; transition: .2s; }
+  .card:hover, .card:focus-within { transform: translateY(-4px); box-shadow: 0 10px 15px -3px #0002; }
+  .btn { position: absolute; top: 1rem; right: 1rem; border: none; background: 0; cursor: pointer; padding: 8px; border-radius: 6px; transition: .2s; }
+  .btn:hover { background: #fee2e2; color: #dc2626; } .btn:active { transform: scale(0.95); }
+  .btn:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; border-radius: 8px; padding: .75rem 1.25rem; display: flex; align-items: center; gap: 1rem; visibility: hidden; opacity: 0; transition: .3s; }
+  .toast.show { visibility: visible; opacity: 1; }
+  .undo { background: #38bdf8; color: #0f172a; border: none; padding: .25rem .75rem; border-radius: 4px; font-weight: 600; cursor: pointer; }
+  .empty { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .btn-p { background: #2563eb; color: #fff; border: none; padding: .5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; transition: .2s; }
+  .btn-p:active { transform: scale(0.95); }
+  .hidden { display: none; }
+</style></head><body>
+<div id="announcer" class="sr-only" aria-live="polite"></div>
+<div class="card" id="card">
+  <h3>Feature Card</h3><p>An accessible card demo.</p>
+  <button id="del" class="btn" aria-label="Delete Card (Del)" title="Delete Card">🗑️</button>
+</div>
+<div id="empty" class="empty hidden"><p>No cards left.</p>
+  <button id="res" class="btn-p" aria-label="Restore Card (R)">Restore Card <small>(R)</small></button></div>
+<div id="toast" class="toast" role="status"><span>Card deleted</span>
+  <button id="undo" class="undo" aria-label="Undo deletion (Esc)">Undo <small>(Esc)</small></button></div>
+<script>
+  const $ = id => document.getElementById(id);
+  const card = $('card'), deleteBtn = $('del'), toast = $('toast'), undoBtn = $('undo'), announcer = $('announcer'), emptyState = $('empty'), restoreBtn = $('res');
+  let timeout;
+  const restore = () => {
+    clearTimeout(timeout); card.classList.remove('hidden'); toast.classList.remove('show'); emptyState.classList.add('hidden');
+    announcer.textContent = 'Card restored'; setTimeout(() => deleteBtn.focus(), 100);
+  };
+  deleteBtn.addEventListener('click', () => {
+    card.classList.add('hidden'); toast.classList.add('show'); announcer.textContent = 'Card deleted';
+    setTimeout(() => undoBtn.focus(), 100);
+    timeout = setTimeout(() => {
+      toast.classList.remove('show'); emptyState.classList.remove('hidden'); announcer.textContent = 'Empty state';
+      if (document.activeElement === undoBtn) restoreBtn.focus();
+    }, 5000);
+  });
+  undoBtn.addEventListener('click', restore); restoreBtn.addEventListener('click', restore);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && toast.classList.contains('show')) restore();
+    if (e.key === 'Delete' && document.activeElement === deleteBtn) deleteBtn.click();
+    if (e.key.toLowerCase() === 'r' && !emptyState.classList.contains('hidden')) restore();
+  });
+</script></body></html>
