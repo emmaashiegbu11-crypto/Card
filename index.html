@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Card</title><style>
+body { font: 16px sans-serif; display: grid; place-items: center; height: 100vh; margin: 0; background: #f8fafc; }
+.card, .empty-state { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px #0002; width: 280px; min-height: 120px; position: relative; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.card:hover, .card:focus-within { transform: translateY(-4px); box-shadow: 0 10px 15px -3px #0002; }
+.btn-delete { position: absolute; top: 1rem; right: 1rem; border: none; background: transparent; cursor: pointer; padding: 8px; border-radius: 6px; transition: 0.2s; font-size: 1.1rem; }
+.btn-delete:hover { background: #fee2e2; color: #dc2626; }
+.btn-delete:active, .btn-restore:active, .btn-undo:active, .btn-close:active { transform: scale(0.95); }
+.btn-delete:focus-visible, .btn-restore:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.btn-restore { background: #1d4ed8; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 0.5rem; }
+.btn-restore:hover { background: #1e40af; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; border-radius: 8px; display: flex; flex-direction: column; visibility: hidden; opacity: 0; transition: 0.3s; overflow: hidden; min-width: 320px; box-shadow: 0 20px 25px -5px #0003; }
+.toast.show { visibility: visible; opacity: 1; }
+.toast-content { padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.toast-actions { display: flex; align-items: center; gap: 0.5rem; }
+.btn-undo { background: #38bdf8; color: #0f172a; border: none; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-undo:hover { background: #7dd3fc; }
+.btn-undo:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.btn-close { background: transparent; border: none; color: #94a3b8; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 1rem; transition: 0.2s; }
+.btn-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.btn-close:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.toast-progress { height: 4px; background: #38bdf8; width: 100%; transform-origin: left; transform: scaleX(0); }
+.toast.show .toast-progress { animation: shrink 5s linear forwards; }
+.toast.show.paused .toast-progress { animation-play-state: paused; }
+@keyframes shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.card.restored { animation: pulse 1s; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 4px #38bdf8; } 100% { box-shadow: 0 4px 6px -1px #0002; } }
+.shortcut-hint { opacity: 0; max-width: 0; display: inline-block; transition: all 0.2s; overflow: hidden; white-space: nowrap; font-size: 0.8em; font-weight: normal; }
+button:hover .shortcut-hint, button:focus .shortcut-hint, button:focus-within .shortcut-hint { opacity: 1; max-width: 60px; margin-left: 4px; }
+.hidden { display: none !important; }
+</style></head><body>
+<div id="announcer" class="sr-only" aria-live="polite"></div>
+<div class="card" id="card"><h3>Feature Card</h3><p>An accessible card demo.</p><button id="del" class="btn-delete" aria-label="Delete Feature Card (Del)" title="Delete Feature Card">🗑️<span class="shortcut-hint">(Del)</span></button></div>
+<div class="empty-state hidden" id="empty"><h3>No Active Cards</h3><p>The feature card has been deleted.</p><button id="restore" class="btn-restore" aria-label="Restore Card (R)" title="Restore Card">Restore Card<span class="shortcut-hint">(R)</span></button></div>
+<div id="toast" class="toast" role="status"><div class="toast-content"><span>Card deleted</span><div class="toast-actions"><button id="undo" class="btn-undo" aria-label="Undo deletion (Esc)">Undo<span class="shortcut-hint">(Esc)</span></button><button id="close" class="btn-close" aria-label="Dismiss notification" title="Dismiss">✕</button></div></div><div id="progress" class="toast-progress"></div></div>
+<script>
+const cardElement = document.getElementById('card'), deleteButton = document.getElementById('del'), toastElement = document.getElementById('toast'), undoButton = document.getElementById('undo'), announcerElement = document.getElementById('announcer'), emptyStateElement = document.getElementById('empty'), restoreButton = document.getElementById('restore'), closeButton = document.getElementById('close'), progressBar = document.getElementById('progress');
+let toastTimeout, startTime, remainingTime = 5000, isHovered = false, isFocused = false;
+function pauseTimer() { if (toastElement.classList.contains('show')) { remainingTime -= (Date.now() - startTime); clearTimeout(toastTimeout); toastElement.classList.add('paused'); } }
+function resumeTimer() { if (toastElement.classList.contains('show') && !isHovered && !isFocused) { startTime = Date.now(); toastTimeout = setTimeout(expireToast, remainingTime); toastElement.classList.remove('paused'); } }
+function expireToast() { const focusInToast = toastElement.contains(document.activeElement); toastElement.classList.remove('show'); announcerElement.textContent = 'Notification expired.'; if (focusInToast) setTimeout(() => restoreButton.focus(), 100); }
+deleteButton.addEventListener('click', () => {
+  cardElement.classList.add('hidden'); emptyStateElement.classList.remove('hidden'); progressBar.style.display = 'block'; toastElement.classList.remove('paused'); toastElement.classList.add('show'); undoButton.disabled = false; announcerElement.textContent = 'Card deleted. Use Escape or click Undo to reverse.';
+  setTimeout(() => undoButton.focus(), 100); remainingTime = 5000; isHovered = false; isFocused = false; startTime = Date.now(); toastTimeout = setTimeout(expireToast, remainingTime);
+});
+function restoreCard() {
+  clearTimeout(toastTimeout); progressBar.style.display = 'none'; cardElement.classList.remove('hidden'); emptyStateElement.classList.add('hidden'); cardElement.classList.add('restored'); toastElement.classList.remove('show'); announcerElement.textContent = 'Card restored successfully.';
+  const wasFocused = document.activeElement === undoButton || document.activeElement === closeButton; if (wasFocused) { setTimeout(() => deleteButton.focus(), 100); } undoButton.disabled = true; setTimeout(() => cardElement.classList.remove('restored'), 1000);
+}
+undoButton.addEventListener('click', restoreCard); restoreButton.addEventListener('click', restoreCard);
+closeButton.addEventListener('click', () => { const focusInToast = toastElement.contains(document.activeElement); clearTimeout(toastTimeout); toastElement.classList.remove('show'); announcerElement.textContent = 'Notification dismissed.'; if (focusInToast) setTimeout(() => restoreButton.focus(), 100); });
+toastElement.addEventListener('mouseenter', () => { isHovered = true; pauseTimer(); }); toastElement.addEventListener('mouseleave', () => { isHovered = false; resumeTimer(); });
+toastElement.addEventListener('focusin', () => { isFocused = true; pauseTimer(); }); toastElement.addEventListener('focusout', () => { isFocused = false; resumeTimer(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && toastElement.classList.contains('show')) undoButton.click();
+  if (e.key === 'Delete' && document.activeElement === deleteButton) deleteButton.click();
+  if ((e.key === 'r' || e.key === 'R') && cardElement.classList.contains('hidden') && document.activeElement !== undoButton && document.activeElement !== closeButton) restoreButton.click();
+});
+</script></body></html>
