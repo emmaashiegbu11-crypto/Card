@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Card Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; display: grid; place-items: center; height: 100vh; margin: 0; background: #f8fafc; }
+    .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 320px; transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover, .card:focus-within { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; }
+    .btn { background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; }
+    .btn:hover { background: #1d4ed8; }
+    .btn:active { transform: scale(0.95); }
+    .btn:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+    .id { font-family: monospace; background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; color: #475569; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3>Feature Card</h3>
+    <p>This accessible card has a copy-to-clipboard micro-interaction with polite screen-reader updates.</p>
+    <div class="footer">
+      <span class="id" id="cardId">CARD-1234</span>
+      <button class="btn" id="copyBtn" aria-label="Copy Card ID to clipboard">Copy</button>
+    </div>
+  </div>
+  <div id="liveRegion" class="sr-only" aria-live="polite"></div>
+  <script>
+    const copyBtn = document.getElementById('copyBtn'), liveRegion = document.getElementById('liveRegion'), cardId = document.getElementById('cardId').textContent;
+    let resetTimeout;
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(cardId).then(() => {
+        copyBtn.textContent = 'Copied! ✓'; copyBtn.style.background = '#059669'; liveRegion.textContent = 'Card ID copied to clipboard';
+        clearTimeout(resetTimeout);
+        resetTimeout = setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.style.background = ''; liveRegion.textContent = ''; }, 2000);
+      }).catch(() => { liveRegion.textContent = 'Failed to copy'; });
+    });
+  </script>
+</body>
+</html>
