@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Accessible Card</title>
+  <style>
+    body{font:14px sans-serif;display:grid;place-items:center;height:100vh;margin:0;background:#f8fafc;color:#1e293b}
+    .card,.empty{background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 4px 6px -1px #0002;max-width:320px;text-align:center;transition:.2s}
+    .card:hover,.card:focus-within{transform:translateY(-4px);box-shadow:0 10px 15px -3px #0002}
+    button{background:#2563eb;color:#fff;border:none;padding:.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:600;transition:.15s}
+    button:hover{background:#1d4ed8} button:active{transform:scale(.95)} button:focus-visible{outline:3px solid #38bdf8;outline-offset:2px}
+    .del-btn{background:#ef4444;margin-top:.5rem} .del-btn:hover{background:#dc2626}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+    .hidden{display:none !important}
+    .toast{position:fixed;bottom:2rem;background:#1e293b;color:#fff;padding:.75rem 1.25rem;border-radius:8px;display:flex;align-items:center;gap:1rem;box-shadow:0 10px 15px -3px #0004;transition:.3s;opacity:0;transform:translateY(1rem)}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .undo-btn{background:#38bdf8;color:#0f172a} .undo-btn:hover{background:#7dd3fc}
+  </style></head><body>
+  <div id="announcer" class="sr-only" aria-live="polite"></div>
+  <div id="card" class="card">
+    <h3>Feature Card</h3><p>An accessible card demo with undoable deletion.</p>
+    <button id="delBtn" class="del-btn" aria-label="Delete Feature Card (Delete)">Delete <span style="font-size:.7rem;opacity:.8">(Del)</span></button>
+  </div>
+  <div id="empty" class="empty hidden"><p>No cards remaining.</p><button id="restoreBtn" aria-label="Restore Card (R)">Restore Card <span style="font-size:.7rem;opacity:.8">(R)</span></button></div>
+  <div id="toast" class="toast hidden"><span>Card deleted.</span><button id="undoBtn" class="undo-btn" aria-label="Undo deletion (Esc)">Undo <span style="font-size:.7rem;opacity:.8">(Esc)</span></button></div>
+  <script>
+    const card=document.getElementById('card'),empty=document.getElementById('empty'),toast=document.getElementById('toast'),announcer=document.getElementById('announcer'),delBtn=document.getElementById('delBtn'),undoBtn=document.getElementById('undoBtn'),restoreBtn=document.getElementById('restoreBtn');
+    let t;
+    const hideToast=()=>{toast.classList.remove('show');setTimeout(()=>toast.classList.add('hidden'),300)};
+    delBtn.onclick=()=>{
+      card.classList.add('hidden');toast.classList.remove('hidden');setTimeout(()=>toast.classList.add('show'),10);announcer.textContent='Card deleted';setTimeout(()=>undoBtn.focus(),50);
+      t=setTimeout(()=>{hideToast();empty.classList.remove('hidden');setTimeout(()=>restoreBtn.focus(),50)},4000);
+    };
+    undoBtn.onclick=()=>{clearTimeout(t);hideToast();card.classList.remove('hidden');announcer.textContent='Card restored';setTimeout(()=>delBtn.focus(),50)};
+    restoreBtn.onclick=()=>{empty.classList.add('hidden');card.classList.remove('hidden');announcer.textContent='Card restored';setTimeout(()=>delBtn.focus(),50)};
+    document.addEventListener('keydown',(e)=>{
+      if(e.key==='Escape'&&!toast.classList.contains('hidden'))undoBtn.click();
+      else if((e.key==='r'||e.key==='R')&&!empty.classList.contains('hidden'))restoreBtn.click();
+      else if(e.key==='Delete'&&document.activeElement===delBtn)delBtn.click();
+    });
+  </script></body></html>
