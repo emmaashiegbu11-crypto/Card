@@ -1,0 +1,3 @@
+## 2026-07-09 - [Toast Dismissal and Graceful Focus Hand-off]
+**Learning:** Automatically expiring notification toasts with interactive controls (like Undo) require careful focus restoration upon manual dismissal. If a user dismisses a toast containing keyboard focus, the focus state collapses, leading to a keyboard trap or focus loss. Explicitly shifting focus to a logical next action (such as the empty state restore button) ensures smooth screen-reader flow and WCAG 2.2 alignment.
+**Action:** Always map focus states before destroying/hiding active notifications, and gracefully transition focus to a logical next interactive element when a notification is dismissed with focus inside it.
