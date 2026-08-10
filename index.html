@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Card</title>
+  <style>
+    body { font: 14px sans-serif; display: grid; place-items: center; height: 95vh; background: #f8fafc; margin: 0; }
+    .card, .toast { background: #fff; padding: 1.25rem; border-radius: 8px; box-shadow: 0 4px 6px -1px #0002; transition: .2s; width: 280px; position: relative; } .card:hover, .card:focus-within { transform: translateY(-4px); box-shadow: 0 10px 15px -3px #0002; }
+    button { cursor: pointer; border: none; border-radius: 4px; transition: .2s; font-weight: 600; padding: .25rem .5rem; display: inline-flex; align-items: center; } button:active { transform: scale(.95); } button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; } .del-btn { position: absolute; top: .75rem; right: .75rem; background: none; padding: 4px; } .del-btn:hover { background: #fee2e2; }
+    .toast { position: fixed; bottom: 2rem; background: #1e293b; color: #fff; display: flex; align-items: center; justify-content: space-between; opacity: 0; visibility: hidden; transform: translateY(10px); width: 300px; } .toast.show { opacity: 1; visibility: visible; transform: none; } .toast button:focus-visible { outline: 2px solid #38bdf8; }
+    .undo-btn { background: #38bdf8; color: #0f172a; } .undo-btn:hover { background: #7dd3fc; } .close-btn { background: transparent; color: #94a3b8; font-size: 1rem; } .close-btn:hover { color: #fff; } .restore-btn { background: #2563eb; color: #fff; } .restore-btn:hover { background: #1d4ed8; }
+    .hidden { display: none !important; } .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); border: 0; } @keyframes shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } } @keyframes pulse { 0% { box-shadow: 0 0 0 4px #38bdf8; } 100% { box-shadow: 0 4px 6px -1px #0002; } } .restored { animation: pulse 1s ease-out; }
+    .hint { opacity: 0; max-width: 0; overflow: hidden; transition: .2s; font-size: 10px; color: #64748b; } button:hover .hint, button:focus-visible .hint { opacity: 1; max-width: 80px; margin-left: 4px; } .toast .hint { color: #cbd5e1; } .progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #38bdf8; width: 100%; transform-origin: left; }
+  </style>
+</head>
+<body>
+  <div id="ann" class="sr-only" aria-live="polite"></div>
+  <div id="card" class="card" tabindex="0" aria-label="Interactive Card"><h3>Card</h3><p>Accessible demo.</p><button id="del" class="del-btn" aria-label="Delete Card (Del)">🗑️<span class="hint">(Del)</span></button></div>
+  <button id="res" class="restore-btn hidden" aria-label="Restore Card (R)">Restore Card<span class="hint">(R)</span></button>
+  <div id="toast" class="toast" role="status"><div id="prog" class="progress"></div><span>Card deleted.</span><div style="display:flex;gap:4px;align-items:center;"><button id="undo" class="undo-btn" aria-label="Undo deletion (Esc)">Undo<span class="hint">(Esc)</span></button><button id="close" class="close-btn" aria-label="Dismiss (X)">×</button></div></div>
+  <script>
+    const card=document.getElementById('card'), del=document.getElementById('del'), res=document.getElementById('res'), toast=document.getElementById('toast'), undo=document.getElementById('undo'), close=document.getElementById('close'), prog=document.getElementById('prog'), ann=document.getElementById('ann');
+    let timer, startT, rem=5000, paused=0, hover=0, focus=0;
+    const hide = () => { card.classList.add('hidden'); res.classList.remove('hidden'); toast.classList.remove('show'); prog.style.animation='none'; setTimeout(()=>res.focus(), 100); };
+    const start = () => { if (rem > 0) { startT = Date.now(); paused = 0; timer = setTimeout(hide, rem); } };
+    const pause = () => { if (!paused) { paused = 1; clearTimeout(timer); rem -= Date.now() - startT; prog.style.animationPlayState = 'paused'; } };
+    const resume = () => { if (paused && !hover && !focus) { start(); prog.style.animationPlayState = 'running'; } };
+    const restore = () => { card.classList.remove('hidden'); card.classList.add('restored'); setTimeout(()=>del.focus(), 120); ann.textContent="Card restored"; setTimeout(()=>card.classList.remove('restored'), 1000); };
+    const cancelToast = () => { clearTimeout(timer); toast.classList.remove('show'); prog.style.animation = 'none'; };
+    del.addEventListener('click', () => { card.classList.add('hidden'); toast.classList.add('show'); prog.style.animation = 'shrink 5s linear forwards'; prog.style.animationPlayState = 'running'; setTimeout(()=>undo.focus(), 120); rem=5000; start(); ann.textContent="Card deleted"; });
+    undo.addEventListener('click', () => { cancelToast(); restore(); }); res.addEventListener('click', () => { res.classList.add('hidden'); restore(); });
+    close.addEventListener('click', () => { const had=toast.contains(document.activeElement); cancelToast(); hide(); if (had) setTimeout(()=>res.focus(), 120); });
+    toast.addEventListener('mouseenter', () => { hover = 1; pause(); }); toast.addEventListener('mouseleave', () => { hover = 0; resume(); });
+    toast.addEventListener('focusin', () => { focus = 1; pause(); }); toast.addEventListener('focusout', e => { if (!toast.contains(e.relatedTarget)) { focus = 0; resume(); } });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && toast.classList.contains('show')) { e.preventDefault(); const had=toast.contains(document.activeElement); cancelToast(); hide(); if (had) setTimeout(()=>res.focus(), 120); }
+      if ((e.key === 'r' || e.key === 'R') && !res.classList.contains('hidden')) res.click();
+      if ((e.key === 'Delete' || e.key === 'Backspace') && document.activeElement === card) del.click();
+    });
+  </script>
+</body>
+</html>
