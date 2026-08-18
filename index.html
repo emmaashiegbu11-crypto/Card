@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessible Card Component</title>
+  <style>
+    body { font: 14px/1.5 sans-serif; display: grid; place-items: center; min-height: 90vh; background: #f8fafc; margin: 0; }
+    .card, .toast { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px #0002; position: relative; transition: .2s; width: 280px; }
+    .card.restored { animation: pulse .6s ease-out; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.5); } 70% { box-shadow: 0 0 0 10px rgba(37,99,235,0); } }
+    button { cursor: pointer; border: none; border-radius: 6px; transition: .2s; font-weight: 600; padding: 6px 12px; }
+    button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+    .del-btn { position: absolute; top: 1rem; right: 1rem; background: none; padding: 6px; }
+    .toast { position: fixed; bottom: 2rem; background: #1e293b; color: #fff; display: flex; align-items: center; gap: .75rem; opacity: 0; visibility: hidden; transform: translateY(10px); transition: .3s; }
+    .toast.show { opacity: 1; visibility: visible; transform: none; }
+    .undo-btn { background: #38bdf8; color: #0f172a; } .toast button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+    .restore-btn { background: #2563eb; color: #fff; } .close-btn { background: none; color: #94a3b8; font-size: 1.2rem; padding: 2px 6px; }
+    .hidden { display: none !important; } .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  </style>
+</head>
+<body>
+  <div id="announcer" class="sr-only" aria-live="polite"></div>
+  <div id="card" class="card">
+    <h3>Interactive Card</h3><p>An accessible card demo with undo and restoration.</p>
+    <button id="delBtn" class="del-btn" aria-label="Delete Card"><span aria-hidden="true">🗑️</span></button>
+  </div>
+  <button id="restoreBtn" class="restore-btn hidden" aria-label="Restore Card">Restore Card</button>
+  <div id="toast" class="toast" role="status">
+    <span>Card deleted.</span>
+    <button id="undoBtn" class="undo-btn" aria-label="Undo deletion">Undo</button>
+    <button id="closeBtn" class="close-btn" aria-label="Dismiss notification">&times;</button>
+  </div>
+  <script>
+    const card = document.getElementById('card'), delBtn = document.getElementById('delBtn'), restoreBtn = document.getElementById('restoreBtn'), toast = document.getElementById('toast'), undoBtn = document.getElementById('undoBtn'), closeBtn = document.getElementById('closeBtn'), announcer = document.getElementById('announcer');
+    let timer, rem = 5000, last, paused = 0, hover = 0, focus = 0;
+    const hide = () => { const wasFocused = toast.contains(document.activeElement); card.classList.add('hidden'); restoreBtn.classList.remove('hidden'); toast.classList.remove('show'); if (wasFocused) setTimeout(() => restoreBtn.focus(), 100); };
+    const start = () => { if (rem > 0) { last = Date.now(); paused = 0; timer = setTimeout(hide, rem); } };
+    const pause = () => { if (!paused) { paused = 1; clearTimeout(timer); rem -= Date.now() - last; } };
+    const resume = () => { if (paused && !hover && !focus) start(); };
+    const restore = () => { card.classList.remove('hidden'); toast.classList.remove('show'); clearTimeout(timer); card.classList.add('restored'); setTimeout(() => delBtn.focus(), 100); setTimeout(() => card.classList.remove('restored'), 600); announcer.textContent = "Card restored"; };
+    delBtn.addEventListener('click', () => { card.classList.add('hidden'); toast.classList.add('show'); rem = 5000; setTimeout(() => undoBtn.focus(), 100); start(); announcer.textContent = "Card deleted"; });
+    undoBtn.addEventListener('click', restore); closeBtn.addEventListener('click', () => { clearTimeout(timer); hide(); }); restoreBtn.addEventListener('click', () => { restoreBtn.classList.add('hidden'); restore(); });
+    toast.addEventListener('mouseenter', () => { hover = 1; pause(); }); toast.addEventListener('mouseleave', () => { hover = 0; resume(); });
+    toast.addEventListener('focusin', () => { focus = 1; pause(); }); toast.addEventListener('focusout', (e) => { if (!toast.contains(e.relatedTarget)) { focus = 0; resume(); } });
+  </script>
+</body>
+</html>
