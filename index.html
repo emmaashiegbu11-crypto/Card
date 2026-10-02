@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Card Demo</title><style>
+body{font:16px system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8fafc;color:#0f172a}
+.card,.empty{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.5rem;width:320px;box-shadow:0 4px 6px -1px #0001;position:relative;transition:transform .2s,box-shadow .2s}
+.card:hover,.card:focus-within{transform:translateY(-2px);box-shadow:0 10px 15px -3px #0001}
+.card.restored{animation:pulse .8s}@keyframes pulse{50%{outline:3px solid #38bdf8;outline-offset:2px}}
+.btn{border:none;background:#f1f5f9;cursor:pointer;padding:.5rem .75rem;border-radius:6px;font-weight:500;transition:background .2s}
+.btn:hover{background:#e2e8f0} .btn-del{position:absolute;top:1rem;right:1rem;color:#ef4444;background:#fef2f2}
+.btn-del:hover{background:#fee2e2;color:#dc2626} .btn:focus-visible,.toast-btn:focus-visible,.toast-close:focus-visible{outline:2px solid #38bdf8;outline-offset:2px}
+.toast{position:fixed;bottom:2rem;background:#0f172a;color:#fff;padding:.75rem 1rem;border-radius:8px;display:flex;align-items:center;gap:.75rem;box-shadow:0 10px 15px -3px #0003;transition:opacity .2s}
+.toast-btn{background:#38bdf8;color:#0f172a;border:none;padding:.25rem .6rem;border-radius:4px;font-weight:600;cursor:pointer}
+.toast-btn:hover{background:#7dd3fc} .toast-close{background:transparent;color:#94a3b8;border:none;font-size:1.1rem;cursor:pointer;padding:0 .25rem;border-radius:4px}
+.toast-close:hover{color:#fff} .hidden{display:none !important} .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+</style></head><body>
+<div id="announcer" class="sr-only" aria-live="polite"></div>
+<main id="card" class="card" tabindex="0">
+  <button id="del-btn" class="btn btn-del" aria-label="Delete card (Del)"><span aria-hidden="true">🗑️</span> <small>(Del)</small></button>
+  <h2>Interactive Card</h2><p>Explore micro-interactions with accessible keyboard navigation.</p>
+</main>
+<div id="empty" class="empty hidden">
+  <h3>No cards available</h3><p>The card was removed.</p>
+  <button id="restore-btn" class="btn" aria-label="Restore card (R)">Restore Card <small>(R)</small></button>
+</div>
+<div id="toast" class="toast hidden" role="status" aria-live="polite">
+  <span>Card deleted.</span><button id="undo-btn" class="toast-btn" aria-label="Undo deletion (Esc)">Undo <small>(Esc)</small></button><button id="dismiss-btn" class="toast-close" aria-label="Dismiss notification">&times;</button>
+</div>
+<script>
+const card=document.getElementById('card'), empty=document.getElementById('empty'), delBtn=document.getElementById('del-btn'), restoreBtn=document.getElementById('restore-btn'), toast=document.getElementById('toast'), undoBtn=document.getElementById('undo-btn'), dismissBtn=document.getElementById('dismiss-btn'), announcer=document.getElementById('announcer');
+let timer, remaining=5000, start=0;
+function announce(m){ announcer.textContent=''; setTimeout(()=>announcer.textContent=m,50); }
+function startTimer(){ start=Date.now(); timer=setTimeout(dismissToast,remaining); }
+function pauseTimer(){ clearTimeout(timer); remaining-=Date.now()-start; }
+function dismissToast(){ clearTimeout(timer); toast.classList.add('hidden'); if(toast.contains(document.activeElement)) restoreBtn.focus(); }
+function showCard(){
+  clearTimeout(timer); card.classList.remove('hidden'); empty.classList.add('hidden'); toast.classList.add('hidden');
+  card.classList.add('restored'); setTimeout(()=>card.classList.remove('restored'),800);
+  announce('Card restored.'); delBtn.focus();
+}
+function deleteCard(){
+  card.classList.add('hidden'); empty.classList.remove('hidden'); toast.classList.remove('hidden');
+  announce('Card deleted. Press Escape to undo.'); undoBtn.focus(); remaining=5000; startTimer();
+}
+delBtn.onclick=deleteCard; undoBtn.onclick=showCard; restoreBtn.onclick=showCard; dismissBtn.onclick=dismissToast;
+toast.onmouseenter=pauseTimer; toast.onmouseleave=()=>{ if(remaining>0 && !toast.contains(document.activeElement)) startTimer(); };
+toast.onfocusin=pauseTimer; toast.onfocusout=(e)=>{ if(remaining>0 && !toast.contains(e.relatedTarget)) startTimer(); };
+document.onkeydown=(e)=>{
+  if(e.key==='Escape'&&!toast.classList.contains('hidden')) showCard();
+  else if((e.key==='r'||e.key==='R')&&!empty.classList.contains('hidden')) showCard();
+  else if(e.key==='Delete'&&!card.classList.contains('hidden')&&(document.activeElement===card||card.contains(document.activeElement))) deleteCard();
+};
+</script></body></html>
